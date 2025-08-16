@@ -7,7 +7,7 @@ from PIL import Image
 # Load model
 @st.cache_resource
 def load_model():
-    return YOLO("best.pt")  # change path if needed
+    return YOLO("final.pt")  # change path if needed
 
 model = load_model()
 
