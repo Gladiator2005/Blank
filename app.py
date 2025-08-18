@@ -1,37 +1,44 @@
 import streamlit as st
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 from ultralytics import YOLO
 import cv2
 import numpy as np
 from PIL import Image
+import av
 
-# Load model
+# Load YOLO model
 @st.cache_resource
 def load_model():
-    return YOLO("final.pt")  # change path if needed
+    return YOLO("final.pt")  # Change path if needed
 
 model = load_model()
 
+# Define video processor for real-time webcam feed
+class YoloVideoProcessor(VideoProcessorBase):
+    def __init__(self):
+        self.model = model
+
+    def recv(self, frame):
+        # Convert frame to numpy array (OpenCV format)
+        img = frame.to_ndarray(format="bgr24")
+
+        # Run YOLO inference
+        results = self.model(img)
+
+        # Draw detections
+        for r in results:
+            im_array = r.plot()  # OpenCV array with boxes + labels
+
+        return av.VideoFrame.from_ndarray(im_array, format="bgr24")
+
 # Streamlit UI
-st.title("🔍 Human Detection in Thermal Images")
-st.write("Upload an image to detect humans using the trained YOLO model.")
+st.title("🔍 Real-Time Human Detection in Thermal Images")
+st.write("Detect humans in real-time using your webcam with the trained YOLO model.")
 
-# File uploader
-uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
-    # Read image
-    image = Image.open(uploaded_file).convert("RGB")
-    img_array = np.array(image)
-
-    # Run inference
-    results = model(img_array)
-
-    # Draw detections
-    for r in results:
-        im_array = r.plot()  # OpenCV array with boxes + labels
-
-    # Convert BGR (OpenCV) → RGB (Streamlit)
-    im_rgb = cv2.cvtColor(im_array, cv2.COLOR_BGR2RGB)
-
-    # Display
-    st.image(im_rgb, caption="Detection Results", use_container_width=True)
+# Webcam streamer
+webrtc_streamer(
+    key="yolo-webcam",
+    video_processor_factory=YoloVideoProcessor,
+    media_stream_constraints={"video": True, "audio": False},
+    async_processing=True,
+)
