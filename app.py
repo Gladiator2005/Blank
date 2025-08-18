@@ -1,9 +1,8 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfiguration
 from ultralytics import YOLO
 import cv2
 import numpy as np
-from PIL import Image
 import av
 
 # Load YOLO model
@@ -12,6 +11,20 @@ def load_model():
     return YOLO("final.pt")  # Change path if needed
 
 model = load_model()
+
+# Define WebRTC configuration with STUN/TURN servers
+RTC_CONFIG = RTCConfiguration(
+    {
+        "iceServers": [
+            {"urls": ["stun:stun.l.google.com:19302"]},  # Public STUN server
+            {
+                "urls": ["turn:openrelay.metered.ca:80"],
+                "username": "openrelayproject",
+                "credential": "openrelayproject"
+            },  # Public TURN server (for testing)
+        ]
+    }
+)
 
 # Define video processor for real-time webcam feed
 class YoloVideoProcessor(VideoProcessorBase):
@@ -35,10 +48,18 @@ class YoloVideoProcessor(VideoProcessorBase):
 st.title("🔍 Real-Time Human Detection in Thermal Images")
 st.write("Detect humans in real-time using your webcam with the trained YOLO model.")
 
-# Webcam streamer
+# Webcam streamer with RTC configuration
 webrtc_streamer(
     key="yolo-webcam",
     video_processor_factory=YoloVideoProcessor,
     media_stream_constraints={"video": True, "audio": False},
     async_processing=True,
+    rtc_configuration=RTC_CONFIG,
+)
+
+# Troubleshooting note
+st.info(
+    "If the webcam fails to connect, ensure your network allows WebRTC traffic (UDP ports) "
+    "and that your webcam is not blocked by another application. "
+    "You may need to configure a custom TURN server for restrictive networks."
 )
