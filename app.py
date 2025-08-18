@@ -8,7 +8,7 @@ import av
 # Load YOLO model
 @st.cache_resource
 def load_model():
-    return YOLO("final.pt")  # Change path if needed
+    return YOLO("final.pt")  # Ensure final.pt is in the same directory or update path
 
 model = load_model()
 
@@ -19,9 +19,9 @@ RTC_CONFIG = RTCConfiguration(
             {"urls": ["stun:stun.l.google.com:19302"]},  # Public STUN server
             {
                 "urls": ["turn:numb.viagenie.ca:3478"],
-                "username": "your-email@example.com",  # Replace with your email
-                "credential": "your-password"          # Replace with credentials from numb.viagenie.ca
-            },  # Alternative public TURN server
+                "username": "your-email@example.com",  # Replace with your email from numb.viagenie.ca
+                "credential": "your-password"          # Replace with your password from numb.viagenie.ca
+            },  # Public TURN server for testing
         ]
     }
 )
@@ -32,17 +32,22 @@ class YoloVideoProcessor(VideoProcessorBase):
         self.model = model
 
     def recv(self, frame):
-        # Convert frame to numpy array (OpenCV format)
-        img = frame.to_ndarray(format="bgr24")
+        try:
+            # Convert frame to numpy array (OpenCV format)
+            img = frame.to_ndarray(format="bgr24")
 
-        # Run YOLO inference
-        results = self.model(img)
+            # Run YOLO inference
+            results = self.model(img)
 
-        # Draw detections
-        for r in results:
-            im_array = r.plot()  # OpenCV array with boxes + labels
+            # Draw detections
+            im_array = img  # Fallback in case of error
+            for r in results:
+                im_array = r.plot()  # OpenCV array with boxes + labels
 
-        return av.VideoFrame.from_ndarray(im_array, format="bgr24")
+            return av.VideoFrame.from_ndarray(im_array, format="bgr24")
+        except Exception as e:
+            st.error(f"Error processing frame: {str(e)}")
+            return frame  # Return original frame if processing fails
 
 # Streamlit UI
 st.title("🔍 Real-Time Human Detection in Thermal Images")
@@ -59,8 +64,8 @@ webrtc_streamer(
 
 # Troubleshooting note
 st.info(
-    "If the webcam fails to connect, ensure your network allows WebRTC traffic (UDP ports) "
-    "and that your webcam is not blocked by another application. "
-    "You may need to configure a custom TURN server for restrictive networks. "
-    "Check the browser console (F12) for WebRTC errors."
+    "If the webcam fails to connect, ensure your network allows WebRTC traffic (UDP ports 3478, 19302, 49152–65535). "
+    "Check that your webcam is not used by another application. "
+    "Register at numb.viagenie.ca for TURN credentials or use a custom TURN server for restrictive networks. "
+    "Open browser console (F12) to check for WebRTC errors."
 )
