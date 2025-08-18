@@ -8,7 +8,7 @@ import av
 # Load YOLO model
 @st.cache_resource
 def load_model():
-    return YOLO("best.pt")  # Ensure final.pt is in the same directory or update path
+    return YOLO("final.pt")  # Ensure final.pt is in the same directory or update path
 
 model = load_model()
 
