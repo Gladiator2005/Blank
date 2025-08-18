@@ -18,10 +18,10 @@ RTC_CONFIG = RTCConfiguration(
         "iceServers": [
             {"urls": ["stun:stun.l.google.com:19302"]},  # Public STUN server
             {
-                "urls": ["turn:openrelay.metered.ca:80"],
-                "username": "openrelayproject",
-                "credential": "openrelayproject"
-            },  # Public TURN server (for testing)
+                "urls": ["turn:numb.viagenie.ca:3478"],
+                "username": "your-email@example.com",  # Replace with your email
+                "credential": "your-password"          # Replace with credentials from numb.viagenie.ca
+            },  # Alternative public TURN server
         ]
     }
 )
@@ -61,5 +61,6 @@ webrtc_streamer(
 st.info(
     "If the webcam fails to connect, ensure your network allows WebRTC traffic (UDP ports) "
     "and that your webcam is not blocked by another application. "
-    "You may need to configure a custom TURN server for restrictive networks."
+    "You may need to configure a custom TURN server for restrictive networks. "
+    "Check the browser console (F12) for WebRTC errors."
 )
