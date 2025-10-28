@@ -1,0 +1,17 @@
+# Resume Screening App Dependencies
+streamlit>=1.38.0
+pandas>=2.0.0
+numpy>=1.24.0
+PyPDF2>=3.0.0
+docx2txt>=0.8
+spacy>=3.7.0
+sentence-transformers>=2.2.0
+torch>=2.0.0
+
+# Original App Dependencies
+ultralytics>=8.2.0
+opencv-python-headless>=4.10.0
+pillow>=10.0.0
+streamlit-webrtc
+opencv-contrib-python-headless
+av
